@@ -4,6 +4,7 @@
 #define N 3
 #define D8 255
 #define mGamma 2.2
+#define CHUNK 1024
 
 static const float mColorXform[3][3] = 
 {
@@ -26,22 +27,26 @@ static float mCCMatrixInvert[3][3]=
 	{0.026970f,	0.283604f,  0.689495f}
 };
 
-static float mRGBBeforeGamma[2][3]=
+static float mRGBBeforeGamma[3][3]=
 {
-	{41.33f, 15.56f, 16.22f},  		//0-255
-	{160.00f, 50.00f, 43.00f}  		//0-1
+	{186.00f,  70.00f, 73.00f},  	//Red block
+	{88.00f, 160.00f, 87.00f},  	//Green block
+	{41.33f, 15.56f, 16.22f}  		//Red block
+
 };
 
-static float mRGBAfterGamma[2][3]=
+static float mRGBAfterGamma[3][3]=
 {
-	{186.00f, 70.00f, 73.00f},  	//0-255
-	{160.00f, 50.00f, 43.00f}   	//0-1
+	{186.00f,  70.00f, 73.00f},  	//Red block
+	{88.00f, 160.00f, 87.00f},  	//Green block
+	{41.33f, 15.56f, 16.22f}  		//Red block
 };
 
-static float mHSV[2][3]=
+static float mHSV[3][3]=    		//Hue:0-360 S:0-1   V:0-1
 {
-	{186.00f, 70.00f, 73.00f},  	//Hue:0-360 S:0-100 V:0-100
-	{160.00f, 50.00f, 43.00f}   	//Hue:0-360 S:0-1   V:0-1
+	{186.00f,  70.00f, 73.00f},  	//Red block
+	{88.00f, 160.00f, 87.00f},  	//Green block
+	{41.33f, 15.56f, 16.22f}  		//Red block
 };
 
 
@@ -501,9 +506,9 @@ void mRGB2HSV(void)
 	float mHue, mSat, mValue;
 	float mTemp;
 
-	mR = mRGBAfterGamma[1][0];
-	mG = mRGBAfterGamma[1][1];
-	mB = mRGBAfterGamma[1][2];
+	mR = mRGBBeforeGamma[1][0];
+	mG = mRGBBeforeGamma[1][1];
+	mB = mRGBBeforeGamma[1][2];
 
 	if (mR>=mG)
 	{
@@ -554,10 +559,10 @@ void mRGB2HSV(void)
 	
 	printf("\nRGB value After Gamma:\n");
 	for (i=0; i<N; i++)
-		printf("%10.3f", mRGBAfterGamma[0][i]);
+		printf("%10.3f", mRGBBeforeGamma[0][i]);
 	printf("\t(0-255)\n");
 	for (i=0; i<N; i++)
-		printf("%10.3f", mRGBAfterGamma[1][i]);
+		printf("%10.3f", mRGBBeforeGamma[1][i]);
 	printf("\t(0-1)\n");
 	printf("\nHSV value(H:0-360, S:0-100, V:0-100)\n");
 	for (i=0; i<N; i++)
@@ -629,6 +634,111 @@ void mHSV2RGB()
 
 /*****************************HSV<->RGB end*********************************/
 
+/***********************Input data from File Begin**************************/
+int mInputDataFromFile(void)
+{
+	FILE* pF;
+	int mSize = 0;
+	int mFileSize = 0;
+	int mRet = 0;
+	char* mBuffer=NULL;
+	
+
+	char mValidChar[13] = 
+	{'-','f','.','0','1','2','3','4','5','6','7','8','9'};
+	char mEndofData = '~';
+	char mTemp;
+
+	pF = fopen("myColorData.txt", "rb");
+
+	if (pF==NULL) 
+	{
+		mRet = 1;
+		goto mError; 
+	}
+	else
+	{
+
+		do
+		{
+			mTemp = fgetc(pF);
+			printf("%c", mTemp);
+			if (mTemp == '~')
+				mSize = mFileSize + 1;
+			if (mTemp != EOF)
+				mFileSize++; 
+			
+			if (mSize > CHUNK)
+			{
+				mRet = 4;
+				goto mError;
+			}
+		}while(mTemp!=EOF);
+		printf("\nFile size %d, actual size %d\n", mFileSize, mSize);
+		if (mSize == 0)
+		{
+			mRet = 2;
+			goto mError; 
+		}
+		else
+			mBuffer = (char *)malloc(sizeof(char)*mSize); 
+		rewind(pF);
+		mRet=fread(mBuffer, 1, mSize, pF);
+		if (mRet!=mSize)
+		{
+			printf("\nfread mRet %d mSize %d\n", mRet, mSize);
+			mRet = 3;
+			goto mError; 
+		}
+
+
+	}
+	
+	free(mBuffer);
+	mBuffer = NULL;
+	printf("Buffer %s, %p\n", mBuffer, mBuffer);
+	
+	fclose(pF);
+	printf("Buffer %s, %p\n", pF, pF);
+	return 0;
+	mError:
+	{
+		if (mBuffer != NULL) 
+		{
+			printf("\nSomething wrong for Free Buffer, try again!\n");
+			free(mBuffer);
+		}
+			
+		if (pF != NULL)
+		{
+			printf("\nSomething wrong for close File, try again!\n");
+			fclose(pF);
+		}
+		switch (mRet)
+		{
+		case 1:
+			printf("Error open file!\n");
+			break;
+		case 2:
+			printf("File size incorrect!\n");
+			break;
+		case 3:
+			printf("File size mismatch!\n");
+			break;
+		case 4:
+			printf("File Get Char error!\n");
+			break;
+		default:
+			printf("unknown error!\n");
+			break;
+		}
+		return 1;
+		
+	}
+	
+}
+
+/***********************Input data from File End****************************/
 
 int main(void)
 {
@@ -645,17 +755,24 @@ int main(void)
 	printf("~                                                            ~\n");
 	printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
 
+	//Read the color data from the text file named myColorData.txt
+	mRet = mInputDataFromFile();
+	if (mRet!=0)
+	{
+		printf("mInputDataFromFile error!\n");
+		return 0;
+	}
 
 	do
 	{
-		printf("\nInput function:  "); 
-		scanf("%d", &mOp);
 		printf("\n\n\n0: Test;\n");
 		printf("1: Calculate inverse of CCMatrix;\n");
 		printf("2: Calculate RGB value before gamma from the value after;\n");
 		printf("3: Calculate RGB value after gamma from the value before;\n");
 		printf("4: Calculate HSV value from RGB value;\n");
 		printf("5: Calculate RGB value from HSV value;\n\n\n");
+		printf("\nInput function:  "); 
+		scanf("%d", &mOp);
 		
 		
 		switch (mOp) 
