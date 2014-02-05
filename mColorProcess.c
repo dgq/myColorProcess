@@ -35,14 +35,30 @@ static float mRGBBeforeGamma[3][3]=
 
 };
 
+
+static float mRGBBeforeCCM[3][3]=
+{
+	{186.00f,  70.00f, 73.00f},  	//Red block
+	{88.00f, 160.00f, 87.00f},  	//Green block
+	{41.33f, 15.56f, 16.22f}  		//Red block
+
+};
+
 static float mRGBAfterGamma[3][3]=
+{
+	{186.00f,  70.00f, 73.00f},  	//Red block
+	{88.00f, 160.00f, 87.00f},  	//Green block
+	{65.00f, 75.00f, 163.00f}  		//Red block
+};
+
+static float mHSVA[3][3]=    		//Hue:0-360 S:0-1   V:0-1  RGB After gamma
 {
 	{186.00f,  70.00f, 73.00f},  	//Red block
 	{88.00f, 160.00f, 87.00f},  	//Green block
 	{41.33f, 15.56f, 16.22f}  		//Red block
 };
 
-static float mHSV[3][3]=    		//Hue:0-360 S:0-1   V:0-1
+static float mHSVB[3][3]=    		//Hue:0-360 S:0-1   V:0-1 RGB Before gamma
 {
 	{186.00f,  70.00f, 73.00f},  	//Red block
 	{88.00f, 160.00f, 87.00f},  	//Green block
@@ -401,238 +417,428 @@ int mArrayInvert(void)
 /***********************gamma correction begin******************************/
 void mGammaCorrection(void)
 {
-	int i, j;
+	int i, j, m;
     float p[3] = {0.0f, 0.0f, 0.0f};
 	printf("\nInput Decoding Gamma(r > 1):  %3.2f\n", mGamma);
 	//scanf("%f", &mGamma);
-	printf("Output Encoding Gamma(r< 1):  %3.2f\n", 1.0f/mGamma);
+	printf("Output Encoding Gamma(r< 1):  %3.2f\n\n", 1.0f/mGamma);
 
-	printf("\nRGB value before Gamma:\n");
-	for (i=0; i<N; i++)
+	
+	for (m=0; m<N; m++)
 	{
-		//scanf("%f", p[i]);
-		p[i] = mRGBBeforeGamma[0][i];
-		printf("%10.3f", p[i]);
+		switch (m)
+		{
+		case 0:
+			printf("Red Block:\n");
+			break;
+		case 1:
+			printf("Green Block:\n");
+			break;
+		case 2:
+			printf("Blue Block:\n");
+			break;
+		default:
+			printf("Unknown Block\n");
+			break;
+		}
+		for (i = 0; i < N; i++) 
+		{
+			//scanf("%f", p[i]);
+			p[i] = mRGBBeforeGamma[m][i];
+			printf("%10.3ff,", p[i]);
+		}
+		printf("\t(0-255(before gamma)\n");
+	
+		for (i = 0; i < N; i++) 
+		{
+			p[i]=p[i]/D8;
+			if (p[i]/D8<=0.018f)
+				p[i]=4.5*p[i];
+			else
+				p[i]=1.099*(pow(p[i],1.0f/mGamma));
+			if (p[i]>=1.0f) 
+				p[i]=1.0f;
+			p[i] = p[i] * D8; 
+			mRGBAfterGamma[m][i] = p[i];
+			printf("%10.3ff,", mRGBAfterGamma[m][i]);
+		}
+		printf("\t(0-255)(after gamma)\n");
+		
 	}
-	printf("\t(0-255)\n");
-	for (i=0; i<N; i++)
-	{
-		//scanf("%f", p[i]);
-		mRGBBeforeGamma[1][i] =p[i]/D8;
-		printf("%10.3f", mRGBBeforeGamma[1][i]);
-	}
-	printf("\t(0-1)\n");
-	printf("\nRGB value after Gamma:\n");
-	for (i = 0; i < N; i++) 
-	{
-		p[i]=p[i]/D8;
-		if (p[i]/D8<=0.018f)
-			p[i]=4.5*p[i];
-		else
-			p[i]=1.099*(pow(p[i],1.0f/mGamma));
-		if (p[i]>=1.0f) 
-			p[i]=1.0f;
-		p[i] = p[i] * D8; 
-		printf("%10.3f", p[i]);
-	}
-	printf("\t(0-255)\n");
-	for (i=0; i<N; i++)
-	{
-		//scanf("%f", p[i]);
-		mRGBAfterGamma[1][i] =p[i]/D8;
-		printf("%10.3f", mRGBAfterGamma[1][i]);
-	}
-	printf("\t(0-1)\n");
 }
 
 void mDeGamma(void)
 {
-	int i;
+	int i, m;
 	float p[3] = {0.0f, 0.0f, 0.0f};
-	
+	printf("\n************************************************\n");
 	printf("\nInput Decoding Gamma(r > 1):  %3.2f\n", mGamma);
 	//scanf("%f", &mGamma);
-	printf("Output Encoding Gamma(r< 1):  %3.2f\n", 1.0f/mGamma);
+	printf("Output Encoding Gamma(r< 1):  %3.2f\n\n", 1.0f/mGamma);
 
-	printf("\nRGB value After Gamma:\n");
-	for (i=0; i<N; i++)
+	for (m=0; m<N; m++)
 	{
-		//scanf("%f", p[i]);
-		p[i] = mRGBAfterGamma[0][i];
-		printf("%10.3f", p[i]);
-	}
-	printf("\t(0-255)\n");
-	for (i=0; i<N; i++)
-	{
-		//scanf("%f", p[i]);
-		mRGBAfterGamma[1][i] =p[i]/D8;
-		printf("%10.3f", mRGBAfterGamma[1][i]);
-	}
-	printf("\t(0-1)");
-	
+		switch (m)
+		{
+		case 0:
+			printf("Red Block:\n");
+			break;
+		case 1:
+			printf("Green Block:\n");
+			break;
+		case 2:
+			printf("Blue Block:\n");
+			break;
+		default:
+			printf("Unknown Block\n");
+			break;
+		}
+		for (i = 0; i < N; i++) 
+		{
+			//scanf("%f", p[i]);
+			p[i] = mRGBAfterGamma[m][i];
+			printf("%10.3ff,", p[i]);
+		}
+		printf("\t(0-255)(after gamma)\n");
 
-	printf("\nRGB value before Gamma:\n");
-	for (i = 0; i < N; i++) 
-	{
-		p[i]=p[i]/D8;
-		if (p[i]/D8 <= 4.5f*0.018f)
-			p[i]= p[i]/4.5f;
-		else
-			p[i]=exp(log(p[i]/1.099)*mGamma);  //  1/mGamma
-		if (p[i]>=1.0f) 
-			p[i]=1.0f;
-		p[i] = p[i] * D8; 
-		printf("%10.3f", p[i]);
+		
+		for (i = 0; i < N; i++) 
+		{
+			p[i]=p[i]/D8;
+			if (p[i]/D8 <= 4.5f*0.018f)
+				p[i]= p[i]/4.5f;
+			else
+				p[i]=exp(log(p[i]/1.099)*mGamma);  //  1/mGamma
+			if (p[i]>=1.0f) 
+				p[i]=1.0f;
+			p[i] = p[i] * D8; 
+			mRGBBeforeGamma[m][i] = p[i];
+			printf("%10.3ff,", mRGBBeforeGamma[m][i]);
+		}
+		printf("\t(0-255)(before gamma)\n");
 	}
-	printf("\t(0-255)\n");
-	for (i=0; i<N; i++)
-	{
-		//scanf("%f", p[i]);
-		mRGBBeforeGamma[1][i] =p[i]/D8;
-		printf("%10.3f", mRGBBeforeGamma[1][i]);
-	}
-	printf("\t(0-1)\n");
+	printf("\n************************************************\n");
 	
 }
 
 /*************************gamma correction end******************************/
 
-/****************************RGB<->HSV begin********************************/
+/****************************RGB->HSV begin********************************/
 void mRGB2HSV(void)
 {
-	int i;
+	int i, m;
 	float mR, mG, mB;
 	float mMax, mMin, mDelta;
 	float mHue, mSat, mValue;
 	float mTemp;
 
-	mR = mRGBBeforeGamma[1][0];
-	mG = mRGBBeforeGamma[1][1];
-	mB = mRGBBeforeGamma[1][2];
-
-	if (mR>=mG)
+	for (m=0; m<2*N; m++)
 	{
-		mMax = mR;
-		mMin = mG;
+		switch (m)
+		{
+		case 0:
+			printf("Red block(before gamma):\n");
+			printf("RGB Value:");
+			mR = mRGBBeforeGamma[0][0]; 
+			mG = mRGBBeforeGamma[0][1];
+			mB = mRGBBeforeGamma[0][2];
+			printf("%10.3ff,%10.3ff,%10.3ff\n", mR, mG, mB);
+			break;
+		case 1:
+			printf("Red block(after gamma):\n");
+			printf("RGB Value:");
+			mR = mRGBAfterGamma[0][0]; 
+			mG = mRGBAfterGamma[0][1];
+			mB = mRGBAfterGamma[0][2];
+			printf("%10.3ff,%10.3ff,%10.3ff\n", mR, mG, mB);
+			break;
+		case 2:
+			printf("Green block(before gamma):\n");
+			printf("RGB Value:");
+			mR = mRGBBeforeGamma[1][0]; 
+			mG = mRGBBeforeGamma[1][1];
+			mB = mRGBBeforeGamma[1][2];
+			printf("%10.3ff,%10.3ff,%10.3ff\n", mR, mG, mB);
+			break;
+		case 3:
+			printf("Green block(after gamma):\n");
+			printf("RGB Value:");
+			mR = mRGBAfterGamma[1][0]; 
+			mG = mRGBAfterGamma[1][1];
+			mB = mRGBAfterGamma[1][2];
+			printf("%10.3ff,%10.3ff,%10.3ff\n", mR, mG, mB);
+			break;
+		case 4:
+			printf("Blue block(before gamma):\n");
+			printf("RGB Value:");
+			mR = mRGBBeforeGamma[2][0]; 
+			mG = mRGBBeforeGamma[2][1];
+			mB = mRGBBeforeGamma[2][2];
+			printf("%10.3ff,%10.3ff,%10.3ff\n", mR, mG, mB);
+			break; 
+		case 5:
+			printf("Blue block(after gamma):\n");
+			printf("RGB Value:");
+			mR = mRGBAfterGamma[2][0]; 
+			mG = mRGBAfterGamma[2][1];
+			mB = mRGBAfterGamma[2][2];
+			printf("%10.3ff,%10.3ff,%10.3ff\n", mR, mG, mB);
+			break; 
+		default:
+			printf("Unknown mRGB2HSV RGB Data!\n");
+			break;
+		}
+		
+		mR = mR/D8; mG = mG/D8; mB = mB/D8;
+
+		if (mR>=mG)
+		{
+			mMax = mR;
+			mMin = mG;
+		}
+		else
+		{
+			mMax = mG;
+			mMin = mR;
+		}
+		if (mMax <= mB) 
+			mMax = mB;
+		if (mMin >= mB)
+			mMin = mB;
+
+	//Hue calculation
+
+		if (mMax == mMin)
+			mHue = 0.0f;
+		else
+		{
+			mTemp = 60.0f/(mMax - mMin);
+			if ((mMax == mR)&&(mG>=mB))
+				mHue = mTemp*(mG-mB)+0.0f;
+			if ((mMax==mR)&&(mG<mB))
+				mHue = mTemp*(mG-mB)+360.0f;
+			if (mMax==mG)
+				mHue = mTemp*(mB-mR)+120.0f;
+			if (mMax==mB)
+				mHue = mTemp*(mR-mG)+240.0f;
+		}
+	//Saturation Calculation
+
+		if (mMax==0.0f)
+			mSat = 0.0f;
+		else
+			mSat = 1 - mMin/mMax;
+
+	//Value Calculation
+
+		mValue = mMax;
+		
+	//Print HSV value
+		switch (m)
+		{
+		case 0:
+			printf("HSV Value:");
+			mHSVB[0][0]= mHue; 
+			mHSVB[0][1]= mSat; 
+			mHSVB[0][2]= mValue;
+			printf("%10.3ff,%10.3ff,%10.3ff\n", mHue, mSat, mValue);
+			break;
+		case 1:
+			printf("HSV Value:");
+			mHSVA[0][0]= mHue; 
+			mHSVA[0][1]= mSat; 
+			mHSVA[0][2]= mValue;
+			printf("%10.3ff,%10.3ff,%10.3ff\n\n", mHue, mSat, mValue);
+			break;
+		case 2:
+			printf("HSV Value:");
+			mHSVB[1][0]= mHue; 
+			mHSVB[1][1]= mSat; 
+			mHSVB[1][2]= mValue;
+			printf("%10.3ff,%10.3ff,%10.3ff\n", mHue, mSat, mValue);
+			break;
+		case 3:
+			printf("HSV Value:");
+			mHSVA[1][0]= mHue; 
+			mHSVA[1][1]= mSat; 
+			mHSVA[1][2]= mValue;
+			printf("%10.3ff,%10.3ff,%10.3ff\n\n", mHue, mSat, mValue);
+			break;
+		case 4:
+			printf("HSV Value:");
+			mHSVB[2][0]= mHue; 
+			mHSVB[2][1]= mSat; 
+			mHSVB[2][2]= mValue;
+			printf("%10.3ff,%10.3ff,%10.3ff\n", mHue, mSat, mValue);
+			break;
+		case 5:
+			printf("HSV Value:");
+			mHSVA[2][0]= mHue; 
+			mHSVA[2][1]= mSat; 
+			mHSVA[2][2]= mValue;
+			printf("%10.3ff,%10.3ff,%10.3ff\n\n", mHue, mSat, mValue);
+			break; 
+		default:
+			printf("Unknown mRGB2HSV HSV Data!\n");
+			break;
+		}
 	}
-	else
-	{
-		mMax = mG;
-		mMin = mR;
-	}
-	if (mMax <= mB) 
-		mMax = mB;
-	if (mMin >= mB)
-		mMin = mB;
-
-//Hue calculation
-
-	if (mMax == mMin)
-		mHue = 0.0f;
-	else
-	{
-		mTemp = 60.0f/(mMax - mMin);
-		if ((mMax == mR)&&(mG>=mB))
-			mHue = mTemp*(mG-mB)+0.0f;
-		if ((mMax==mR)&&(mG<mB))
-			mHue = mTemp*(mG-mB)+360.0f;
-		if (mMax==mG)
-			mHue = mTemp*(mB-mR)+120.0f;
-		if (mMax==mB)
-			mHue = mTemp*(mR-mG)+240.0f;
-	}
-//Saturation Calculation
-
-	if (mMax==0.0f)
-		mSat = 0.0f;
-	else
-		mSat = 1 - mMin/mMax;
-
-//Value Calculation
-
-	mValue = mMax;
-
-//Print HSV value
-
-	mHSV[0][0]= mHue; mHSV[0][1]=mSat*100; mHSV[0][2]=mValue*100;
-	mHSV[1][0]= mHue; mHSV[1][1]=mSat; mHSV[1][2]=mValue;
-	
-	printf("\nRGB value After Gamma:\n");
-	for (i=0; i<N; i++)
-		printf("%10.3f", mRGBBeforeGamma[0][i]);
-	printf("\t(0-255)\n");
-	for (i=0; i<N; i++)
-		printf("%10.3f", mRGBBeforeGamma[1][i]);
-	printf("\t(0-1)\n");
-	printf("\nHSV value(H:0-360, S:0-100, V:0-100)\n");
-	for (i=0; i<N; i++)
-		printf("%10.3f", mHSV[0][i]);
-	printf("\nHSV value(H:0-360, S:0-1, V:0-1)\n");
-	for (i=0; i<N; i++)
-		printf("%10.3f", mHSV[1][i]);
-	printf("\n");
 }
 
-/****************************RGB<->HSV begin********************************/
+/****************************RGB->HSV begin********************************/
 
-/****************************HSV<->RGB begin********************************/
+/****************************HSV->RGB begin********************************/
 void mHSV2RGB()
 {
-	int i=0;
+	int i, m;
 	int mH; 
 	float mF, mP, mQ, mT;
 	float mHue, mSat, mValue;
 	float mR, mG, mB;
 
-	//u can input the value directly.
+	
 	//Note: H:[0-360), S:[0-1), V:[0-1)
-	mHue=mHSV[1][0]; mSat=mHSV[1][1]; mValue=mHSV[1][2];
+	for (m=0; m<2*N; m++)
+	{
+		switch (m)
+		{
+		case 0:
+			printf("\nRed block(before gamma):\n");
+			printf("HSV Value:");
+			mHue = mHSVB[0][0]; 
+			mSat = mHSVB[0][1]; 
+			mValue = mHSVB[0][2];
+			printf("%10.3ff,%10.3ff,%10.3ff\n", mHue, mSat, mValue);
+			break;
+		case 1:
+			printf("Red block(after gamma):\n");
+			printf("HSV Value:");
+			mHue = mHSVA[0][0]; 
+			mSat = mHSVA[0][1]; 
+			mValue = mHSVA[0][2];
+			printf("%10.3ff,%10.3ff,%10.3ff\n", mHue, mSat, mValue);
+			break;
+		case 2:
+			printf("\nGreen block(before gamma):\n");
+			printf("HSV Value:");
+			mHue = mHSVB[1][0]; 
+			mSat = mHSVB[1][1]; 
+			mValue = mHSVB[1][2];
+			printf("%10.3ff,%10.3ff,%10.3ff\n", mHue, mSat, mValue);
+			break;
+		case 3:
+			printf("Green block(after gamma):\n");
+			printf("HSV Value:");
+			mHue = mHSVA[1][0]; 
+			mSat = mHSVA[1][1]; 
+			mValue = mHSVA[1][2];
+			printf("%10.3ff,%10.3ff,%10.3ff\n", mHue, mSat, mValue);
+			break;
+		case 4:
+			printf("\nBlue block(before gamma):\n");
+			printf("HSV Value:");
+			mHue = mHSVB[2][0]; 
+			mSat = mHSVB[2][1]; 
+			mValue = mHSVB[2][2];
+			printf("%10.3ff,%10.3ff,%10.3ff\n", mHue, mSat, mValue);
+			break;
+		case 5:
+			printf("Blue block(after gamma):\n");
+			printf("HSV Value:");
+			mHue = mHSVA[2][0]; 
+			mSat = mHSVA[2][1]; 
+			mValue = mHSVA[2][2];
+			printf("%10.3ff,%10.3ff,%10.3ff\n", mHue, mSat, mValue);
+			break; 
+		default:
+			printf("Unknown mRGB2HSV HSV Data!\n");
+			break;
+		}
 
-	mH=(int)mHue/60;
-	mF=mHue/60.0f-(float)mH;
-	mP=mValue*(1-mSat);
-	mQ=mValue*(1-mF*mSat);
-	mT=mValue*(1-(1-mF)*mSat);
+		mH=(int)mHue/60;
+		mF=mHue/60.0f-(float)mH;
+		mP=mValue*(1-mSat);
+		mQ=mValue*(1-mF*mSat);
+		mT=mValue*(1-(1-mF)*mSat);
 
-	if (mH==0)
-	{
-		mR=mValue; mG=mT; mB=mP;
-	}
-	if (mH==1)
-	{
-		mR=mQ; mG=mValue; mB=mP;
-	}
-	if (mH==2)
-	{
-		mR=mP; mG=mValue; mB=mT;
-	}
-	if (mH==3)
-	{
-		mR=mP; mG=mQ; mB=mValue;
-	}
-	if (mH==4)
-	{
-		mR=mT; mG=mP; mB=mValue;
-	}
-	if (mH==5)
-	{
-		mR=mValue; mG=mP; mB=mQ;
-	}
+		if (mH==0)
+		{
+			mR=mValue; mG=mT; mB=mP;
+		}
+		if (mH==1)
+		{
+			mR=mQ; mG=mValue; mB=mP;
+		}
+		if (mH==2)
+		{
+			mR=mP; mG=mValue; mB=mT;
+		}
+		if (mH==3)
+		{
+			mR=mP; mG=mQ; mB=mValue;
+		}
+		if (mH==4)
+		{
+			mR=mT; mG=mP; mB=mValue;
+		}
+		if (mH==5)
+		{
+			mR=mValue; mG=mP; mB=mQ;
+		}
 
-	
-	printf("\nHSV value(H:0-360, S:0-1, V:0-1)\n");
-	for (i=0; i<N; i++)
-		printf("%10.3f", mHSV[1][i]);
-
-	printf("\n\nRGB value\n");
-	printf("%10.3f", mR*255); printf("%10.3f", mG*255); 
-	printf("%10.3f\t(0-255)\n", mB*255);
-	printf("%10.3f", mR); printf("%10.3f", mG);
-	printf("%10.3f\t(0-1)\n", mB);
-	
+		mR = mR*D8; mG = mG*D8; mB = mB*D8;
+		switch (m)
+		{
+		case 0:
+			printf("RGB Value:");
+			mRGBBeforeGamma[0][0] = mR; 
+			mRGBBeforeGamma[0][1] = mG;
+			mRGBBeforeGamma[0][2] = mB;
+			printf("%10.3ff,%10.3ff,%10.3ff\n", mR, mG, mB);
+			break;
+		case 1:
+			printf("RGB Value:");
+			mRGBAfterGamma[0][0] = mR; 
+			mRGBAfterGamma[0][1] = mG;
+			mRGBAfterGamma[0][2] = mB;
+			printf("%10.3ff,%10.3ff,%10.3ff\n", mR, mG, mB);
+			break;
+		case 2:
+			printf("RGB Value:");
+			mRGBBeforeGamma[1][0] = mR; 
+			mRGBBeforeGamma[1][1] = mG;
+			mRGBBeforeGamma[1][2] = mB;
+			printf("%10.3ff,%10.3ff,%10.3ff\n", mR, mG, mB);
+			break;
+		case 3:
+			printf("RGB Value:");
+			mRGBAfterGamma[1][0] = mR; 
+			mRGBAfterGamma[1][1] = mG;
+			mRGBAfterGamma[1][2] = mB;
+			printf("%10.3ff,%10.3ff,%10.3ff\n", mR, mG, mB);
+			break;
+		case 4:
+			printf("RGB Value:");
+			mRGBBeforeGamma[2][0] = mR; 
+			mRGBBeforeGamma[2][1] = mG;
+			mRGBBeforeGamma[2][2] = mB;
+			printf("%10.3ff,%10.3ff,%10.3ff\n", mR, mG, mB);
+			break; 
+		case 5:
+			printf("RGB Value:");
+			mRGBAfterGamma[2][0] = mR; 
+			mRGBAfterGamma[2][1] = mG;
+			mRGBAfterGamma[2][2] = mB;
+			printf("%10.3ff,%10.3ff,%10.3ff\n", mR, mG, mB);
+			break; 
+		default:
+			printf("Unknown mRGB2HSV RGB Data!\n");
+			break;
+		}
+	}
 }
 
-/*****************************HSV<->RGB end*********************************/
+/*****************************HSV->RGB end*********************************/
 
 /***********************Input data from File Begin**************************/
 int mInputDataFromFile(void)
@@ -642,6 +848,7 @@ int mInputDataFromFile(void)
 	int mFileSize = 0;
 	int mRet = 0;
 	char* mBuffer=NULL;
+	char mFileName[] = "myColorData.txt";
 	
 
 	char mValidChar[13] = 
@@ -649,7 +856,7 @@ int mInputDataFromFile(void)
 	char mEndofData = '~';
 	char mTemp;
 
-	pF = fopen("myColorData.txt", "rb");
+	pF = fopen(mFileName, "rb");
 
 	if (pF==NULL) 
 	{
@@ -658,12 +865,14 @@ int mInputDataFromFile(void)
 	}
 	else
 	{
-
+		printf("File %s Open Success!\n", mFileName);
+		
+		printf("\n************************************************\n");
 		do
 		{
 			mTemp = fgetc(pF);
 			printf("%c", mTemp);
-			if (mTemp == '~')
+			if (mTemp == mEndofData)
 				mSize = mFileSize + 1;
 			if (mTemp != EOF)
 				mFileSize++; 
@@ -674,6 +883,7 @@ int mInputDataFromFile(void)
 				goto mError;
 			}
 		}while(mTemp!=EOF);
+		printf("\n************************************************\n");
 		printf("\nFile size %d, actual size %d\n", mFileSize, mSize);
 		if (mSize == 0)
 		{
@@ -699,7 +909,8 @@ int mInputDataFromFile(void)
 	printf("Buffer %s, %p\n", mBuffer, mBuffer);
 	
 	fclose(pF);
-	printf("Buffer %s, %p\n", pF, pF);
+	printf("File Point %s, %p\n", pF, pF);
+	printf("\n************************************************\n");
 	return 0;
 	mError:
 	{
@@ -707,12 +918,14 @@ int mInputDataFromFile(void)
 		{
 			printf("\nSomething wrong for Free Buffer, try again!\n");
 			free(mBuffer);
+			printf("Buffer %s, %p\n", mBuffer, mBuffer);
 		}
 			
 		if (pF != NULL)
 		{
 			printf("\nSomething wrong for close File, try again!\n");
 			fclose(pF);
+			printf("File Point %s, %p\n", pF, pF);
 		}
 		switch (mRet)
 		{
@@ -737,8 +950,58 @@ int mInputDataFromFile(void)
 	}
 	
 }
-
 /***********************Input data from File End****************************/
+
+/***********************Get RGB data Before CCM E***************************/
+void mGetRGBBeforeCCM(void)
+{
+	int i, m;
+	float p[3] = {0.0f, 0.0f, 0.0f};
+
+	printf("\n************************************************\n");
+	
+	for (m=0; m<N; m++)
+	{
+		switch (m) 
+			{
+			case 0:
+				printf("\nRed Block:\n");
+				break;
+			case 1:
+				printf("\nGreen Block:\n");
+				break;
+			case 2:
+				printf("\nBlue Block:\n");
+				break;
+			default:
+				printf("Unknown Block\n");
+				break;
+			}
+			for (i = 0; i < N; i++) 
+			{
+				p[i] = mRGBBeforeGamma[m][i]/D8;
+				printf("%10.3ff,", mRGBBeforeGamma[m][i]);
+			}
+			printf("\t(0-255)(Before gamma)\n");
+
+			for (i = 0; i < N; i++) 
+			{
+				mRGBBeforeCCM[m][i] =  mCCMatrixInvert[i][0]*p[0]
+									  +mCCMatrixInvert[i][1]*p[1]
+									  +mCCMatrixInvert[i][2]*p[2];
+				
+				mRGBBeforeCCM[m][i] = mRGBBeforeCCM[m][i] * D8;
+				printf("%10.3ff,", mRGBBeforeCCM[m][i]);
+					 
+			}
+			printf("\t(0-255)(Before CCM)\n");
+	}
+	printf("\n************************************************\n");
+	
+}
+
+/***********************Get RGB data Before CCM X***************************/
+
 
 int main(void)
 {
@@ -748,8 +1011,8 @@ int main(void)
 	printf("~                                                            ~\n");
 	printf("~                                                            ~\n");
 	printf("~  Color Proecss Function                                    ~\n");
-	printf("~  Arthor: dgq                                               ~\n");
-	printf("~  Version 0.1        Date: Jan 3, 2014                      ~\n");
+	printf("~  Editor: dgq                                               ~\n");
+	printf("~  Version 0.1        Date: Feb 3, 2014                      ~\n");
 	printf("~  Hello, listed below is code to process color, enjoy it!!! ~\n");
 	printf("~                                                            ~\n");
 	printf("~                                                            ~\n");
@@ -770,7 +1033,8 @@ int main(void)
 		printf("2: Calculate RGB value before gamma from the value after;\n");
 		printf("3: Calculate RGB value after gamma from the value before;\n");
 		printf("4: Calculate HSV value from RGB value;\n");
-		printf("5: Calculate RGB value from HSV value;\n\n\n");
+		printf("5: Calculate RGB value from HSV value;\n");
+		printf("6: Calculate RGB value Before CCM;\n\n");
 		printf("\nInput function:  "); 
 		scanf("%d", &mOp);
 		
@@ -819,12 +1083,20 @@ int main(void)
 
 			printf("********************HSV->RGB X************************\n");
 			break;
+		case 6:
+			printf("****************RGB value before CCM******************\n");
+
+			mGetRGBBeforeCCM();
+
+			printf("****************RGB value before CCM******************\n");
+			break;
 		default:
 			printf("***************To be continued loading****************\n");
 			break;
 		}
 
-	} while ((mOp>=0)&&(mOp<=5));
+	} while ((mOp>=0)&&(mOp<=6));
 	return 0;
 }
+
 
