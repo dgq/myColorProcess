@@ -1,6 +1,8 @@
 #include "stdio.h"
 #include "math.h"
 #include "stdlib.h"
+#include "time.h"
+
 #define N 3
 #define D8 255
 #define mGamma 2.2
@@ -149,7 +151,7 @@ void print(float *p, int n)
     }
 }
 
-bool Gauss(float A[][N], float B[][N], int n)
+int mGauss(float A[][N], float B[][N], int n)
 {
     int i, j, k;
     float mmax, temp;
@@ -362,7 +364,7 @@ int mArrayInvert(void)
     float a[N][N], b[N][N];
     int n = 3;
 	int mRet = 0;     
-	printf("\nTo get convert matrix using Gauss!\n");
+	printf("\nTo get convert matrix using mGauss!\n");
    
     for (i = 0; i < n; i++)
     {
@@ -382,7 +384,7 @@ int mArrayInvert(void)
 		printf("\n");
     }
    
-    if (!Gauss(a, b, n))
+    if (!mGauss(a, b, n))
     {
 		printf("Inverse matrix:\n");
         for (i = 0; i < n; i++)
@@ -1003,6 +1005,37 @@ void mGetRGBBeforeCCM(void)
 /***********************Get RGB data Before CCM X***************************/
 
 
+/*****************************Print to File E*******************************/
+int mPrint2File(void)
+{
+	int i,j;
+	char mFileName[30];
+	FILE* mFp;
+	time_t mRAWTime;
+	struct tm* mCurrentTime;
+
+	time(&mRAWTime);
+	mCurrentTime =  localtime(&mRAWTime);
+	strftime(mFileName, sizeof(mFileName), "my_%Y%m%d%H%M%S.txt",mCurrentTime);
+	//It's strange, if use "%D", it will show nothing!
+
+	mFp=fopen(mFileName, "wb");
+	if (mFp==NULL)
+	{
+		printf("Open file error!");
+		return 1;
+	}
+	fprintf(mFp,"%s\n",asctime(mCurrentTime));
+	fprintf(mFp, "Only for test\n");
+
+	fclose(mFp);
+
+	return 0;
+}
+
+
+/*****************************Print to File X*******************************/
+
 int main(void)
 {
 	int mRet = 0;
@@ -1019,12 +1052,14 @@ int main(void)
 	printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
 
 	//Read the color data from the text file named myColorData.txt
+	#if 0
 	mRet = mInputDataFromFile();
 	if (mRet!=0)
 	{
 		printf("mInputDataFromFile error!\n");
 		return 0;
 	}
+	#endif
 
 	do
 	{
@@ -1043,6 +1078,7 @@ int main(void)
 		{
 		case 0:
 			printf("**********************Test E**************************\n");
+			mPrint2File();
 			printf("**********************Test X**************************\n");
 			break;
 		case 1:
@@ -1098,5 +1134,4 @@ int main(void)
 	} while ((mOp>=0)&&(mOp<=6));
 	return 0;
 }
-
 
